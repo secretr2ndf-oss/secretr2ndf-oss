@@ -1,0 +1,56 @@
+name: Community Mini Chess
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: chess-game
+  cancel-in-progress: false
+
+jobs:
+  play-move:
+    if: startsWith(github.event.issue.title, 'chess:')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Process chess move
+        id: chess
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: node .github/scripts/chess.mjs --from-env
+
+      - name: Commit updated board
+        if: steps.chess.outputs.ok == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md assets/chess-board.svg assets/chess-state.json
+          git diff --staged --quiet || git commit -m "chess: update board [skip ci]"
+          git push
+
+      - name: Comment and close issue
+        uses: actions/github-script@v7
+        env:
+          CHESS_MSG: ${{ steps.chess.outputs.message }}
+        with:
+          script: |
+            const msg = process.env.CHESS_MSG || 'Processed chess request.';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `${msg}\n\n[Back to profile](https://github.com/${context.repo.owner})`
+            });
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'closed'
+            });
