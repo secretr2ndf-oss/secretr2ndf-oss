@@ -29,7 +29,7 @@ I am actively learning programming and strengthening my technical fundamentals t
 ## Mini Chess
 
 <!-- CHESS:START -->
-<img src="assets/chess-board.svg?v=0" width="356" alt="Mini Chess Board" />
+<img src="assets/chess-board.svg?v=1" width="356" alt="Mini Chess Board" />
 
 **White (You) vs Black (Bot)** · **Status:** White to move (Move #1) · **Recent moves:** Game started
 
